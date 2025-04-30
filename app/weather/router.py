@@ -1,16 +1,19 @@
-from asyncio import sleep
+from datetime import datetime, timezone
 
 from fastapi import APIRouter
-from fastapi_cache.decorator import cache
+from starlette.requests import Request
 
-from app.weather.deps import get_weather
+from app.weather.deps import get_weather_today, get_weather_now
 
-router = APIRouter()
+router = APIRouter(prefix="/weather", tags=["weather"])
 
 
 
-@router.get("/")
-@cache(expire=3600)
+@router.get("/{location}/today")
 async def get_current_weather(location: str):
-    data = await get_weather(location)
-    return data
+    return await get_weather_today(location)
+
+@router.get("/{location}/now")
+async def get_current_weather_now(request: Request, location: str):
+    now = datetime.now(timezone.utc)
+    return await get_weather_now(location, now)
